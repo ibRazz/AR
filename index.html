@@ -4,11 +4,10 @@
 <script src="src/three.min.js"></script>
 <script src="src/stats.min.js"></script>
 <!-- ar.js -->
-<script src="https://dewnation.herokuapp.com/src/ar.min.js"></script>
-<script src="https://dewnation.herokuapp.com/src/OrbitControls.js"></script>
-<script src="https://dewnation.herokuapp.com/src/JDLoader.min.js"></script>
+<script src="src/ar.min.js"></script>
+<script src="src/OrbitControls.js"></script>
+<script src="src/JDLoader.min.js"></script>
 <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
-<script>THREEx.ArToolkitContext.baseURL = '../'</script>
 
 <body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
 
@@ -79,7 +78,7 @@
 
 	// create atToolkitContext
 	let arToolkitContext = new THREEx.ArToolkitContext({
-		cameraParametersUrl: 'https://dewnation.herokuapp.com/examples/custom_markers/data/camera_para.dat',
+		cameraParametersUrl: 'examples/custom_markers/data/camera_para.dat',
 		detectionMode: 'mono',
 		maxDetectionRate: 30,
 		canvasWidth: 80*3,
@@ -107,12 +106,12 @@
 	scene.add(markerRoot);
 	let artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
 		type : 'pattern',
-		patternUrl : 'https://dewnation.herokuapp.com/examples/custom_markers/data/ca.pat'
+		patternUrl : 'examples/custom_markers/data/ca.pat'
 	});
 
     artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
         type : 'pattern',
-        patternUrl : 'https://dewnation.herokuapp.com/examples/custom_markers/data/fl.pat'
+        patternUrl : 'examples/custom_markers/data/fl.pat'
     });
 
 	// build a smoothedControls
@@ -148,7 +147,7 @@
     };
 
     let textureLoader = new THREE.TextureLoader( manager );
-    let texture = textureLoader.load( 'https://dewnation.herokuapp.com/examples/custom_markers/mountain-dew-assets/mountain_dew.jpg' );
+    let texture = textureLoader.load( 'examples/custom_markers/mountain-dew-assets/mountain_dew.jpg' );
     // model
     let onProgress = function ( xhr ) {
         if ( xhr.lengthComputable ) {
@@ -159,7 +158,7 @@
     let onError = function ( xhr ) {};
 
     let loader = new THREE.OBJLoader( manager );
-    loader.load( 'https://dewnation.herokuapp.com/examples/custom_markers/mountain-dew-assets/mountain_dew.obj', function ( object ) {
+    loader.load( 'examples/custom_markers/mountain-dew-assets/mountain_dew.obj', function ( object ) {
         object.traverse( function ( child ) {
             if ( child instanceof THREE.Mesh ) {
                 child.material.map = texture;
