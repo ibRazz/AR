@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<!-- three.js library -->
+<script src="../../src/three.min.js"></script>
+<script src="../../src/stats.min.js"></script>
+<!-- ar.js -->
+<script src="../../src/ar.min.js"></script>
+<script src="../../src/OrbitControls.js"></script>
+<script src="../../src/JDLoader.min.js"></script>
+<script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+<script>THREEx.ArToolkitContext.baseURL = '../'</script>
+
+<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
+    <script>
+        //////////////////////////////////////////////////////////////////////////////////
+        //		Init
+        //////////////////////////////////////////////////////////////////////////////////
+
+        // init renderer
+        let renderer = new THREE.WebGLRenderer({
+            // antialias	: true,
+            alpha: true
+        });
+        renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+        // renderer.setPixelRatio( 1/2 );
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.domElement.style.position = 'absolute';
+        renderer.domElement.style.top = '0px';
+        renderer.domElement.style.left = '0px';
+        document.body.appendChild(renderer.domElement);
+
+        // array of functions for the rendering loop
+        let onRenderFcts = [];
+        let meshes = [], mixers = [], hemisphereLight, controls;
+        let clock = new THREE.Clock;
+        let ThreeJsObject;
+
+        // init scene and camera
+        let scene = new THREE.Scene();
+
+        //////////////////////////////////////////////////////////////////////////////////
+        //		Initialize a basic camera
+        //////////////////////////////////////////////////////////////////////////////////
+
+        // Create a camera
+        let camera = new THREE.Camera();
+        scene.add(camera);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //          handle arToolkitSource
+        ////////////////////////////////////////////////////////////////////////////////
+
+        let arToolkitSource = new THREEx.ArToolkitSource({
+            // to read from the webcam
+            sourceType: 'webcam',
+        });
+
+        arToolkitSource.init(function onReady() {
+            onResize()
+        });
+
+        // handle resize
+        window.addEventListener('resize', function () {
+            onResize()
+        });
+
+        function onResize() {
+            arToolkitSource.onResize();
+            arToolkitSource.copySizeTo(renderer.domElement);
+            if (arToolkitContext.arController !== null) {
+                arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //          initialize arToolkitContext
+        ////////////////////////////////////////////////////////////////////////////////
+
+
+        // create atToolkitContext
+        let arToolkitContext = new THREEx.ArToolkitContext({
+            cameraParametersUrl: 'data/camera_para.dat',
+            detectionMode: 'mono',
+            maxDetectionRate: 30,
+            canvasWidth: 80 * 3,
+            canvasHeight: 60 * 3,
+        });
+        // initialize it
+        arToolkitContext.init(function onCompleted() {
+            // copy projection matrix to camera
+            camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+        });
+
+        // update artoolkit on every frame
+        onRenderFcts.push(function () {
+            if (arToolkitSource.ready === false) return;
+
+            arToolkitContext.update(arToolkitSource.domElement)
+        });
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //          Create a ArMarkerControls
+        ////////////////////////////////////////////////////////////////////////////////
+
+        let markerRoot = new THREE.Group;
+        scene.add(markerRoot);
+        let artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+            type: 'pattern',
+            patternUrl: 'data/ca.pat'
+        });
+
+        artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+            type: 'pattern',
+            patternUrl: 'data/fl.pat'
+        });
+
+        // build a smoothedControls
+        let smoothedRoot = new THREE.Group();
+        let group = new THREE.Group();
+        scene.add(smoothedRoot);
+
+        let smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
+            lerpPosition: 0.4,
+            lerpQuaternion: 0.3,
+            lerpScale: 1,
+        });
+
+        onRenderFcts.push(function (delta) {
+            smoothedControls.update(markerRoot)
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////
+        //		add an object in the scene
+        //////////////////////////////////////////////////////////////////////////////////
+
+        let arWorldRoot = smoothedRoot;
+
+        hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x222222, 0.9); //( skyColor, groundColor, intensity )
+        hemisphereLight.position.set(0, 10000, 0);
+        arWorldRoot.add(hemisphereLight);
+        arWorldRoot.add(new THREE.DirectionalLight(0xFFFFFF, 1));
+
+
+        let manager = new THREE.LoadingManager();
+        manager.onProgress = function (item, loaded, total) {
+            console.log(item, loaded, total);
+        };
+
+        let textureLoader = new THREE.TextureLoader(manager);
+        let texture = textureLoader.load('mountain-dew-assets/Mountain Dew.jpg');
+        // model
+        let onProgress = function (xhr) {
+            if (xhr.lengthComputable) {
+                let percentComplete = xhr.loaded / xhr.total * 100;
+                console.log(Math.round(percentComplete, 2) + '% downloaded');
+            }
+        };
+        let onError = function (xhr) {
+        };
+
+        let loader = new THREE.OBJLoader(manager);
+        loader.load('mountain-dew-assets/Mountain Dew.obj', function (object) {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = texture;
+                }
+            });
+            // object.position.z = -5;
+            // group.add( object );
+            ThreeJsObject = object;
+            ThreeJsObject.scale.set(0.01, 0.01, 0.01);
+            arWorldRoot.add(ThreeJsObject);
+        }, onProgress, onError);
+
+
+        //////////////////////////////////////////////////////////////////////////////////
+        //		render the whole thing on the page
+        //////////////////////////////////////////////////////////////////////////////////
+
+
+        let stats = new Stats();
+        document.body.appendChild(stats.dom);
+        // render the scene
+        onRenderFcts.push(function () {
+            renderer.render(scene, camera);
+            stats.update();
+        });
+
+        // run the rendering loop
+        let lastTimeMsec = null;
+        requestAnimationFrame(function animate(nowMsec) {
+            // keep looping
+            requestAnimationFrame(animate);
+
+            let delta = clock.getDelta();
+            for (let i = 0; i < mixers.length; ++i)
+                mixers[i].update(delta);
+
+            if (ThreeJsObject) {
+                ThreeJsObject.rotation.y += 0.005;
+                scene.rotation.y += 0.005;
+            }
+
+            // measure time
+            lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60;
+            let deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
+            lastTimeMsec = nowMsec;
+
+            // call each update function
+            onRenderFcts.forEach(function (onRenderFct) {
+                onRenderFct(deltaMsec / 1000, nowMsec / 1000)
+            })
+        })
+    </script>
+</body>
