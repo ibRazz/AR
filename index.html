@@ -10,7 +10,8 @@
 <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
 <script>THREEx.ArToolkitContext.baseURL = '../'</script>
 
-<body style='margin : 0px; overflow: hidden; font-family: Monospace;'><div style='position: absolute; top: 10px; width:100%; text-align: center; z-index: 1;'>
+<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
+
 <script>
 	//////////////////////////////////////////////////////////////////////////////////
 	//		Init
@@ -147,7 +148,7 @@
     };
 
     let textureLoader = new THREE.TextureLoader( manager );
-    let texture = textureLoader.load( 'https://dewnation.herokuapp.com/examples/custom_markers/mountain-dew-assets/Mountain Dew.jpg' );
+    let texture = textureLoader.load( 'https://dewnation.herokuapp.com/examples/custom_markers/mountain-dew-assets/mountain_dew.jpg' );
     // model
     let onProgress = function ( xhr ) {
         if ( xhr.lengthComputable ) {
@@ -158,7 +159,7 @@
     let onError = function ( xhr ) {};
 
     let loader = new THREE.OBJLoader( manager );
-    loader.load( 'https://dewnation.herokuapp.com/examples/custom_markers/mountain-dew-assets/Mountain Dew.obj', function ( object ) {
+    loader.load( 'https://dewnation.herokuapp.com/examples/custom_markers/mountain-dew-assets/mountain_dew.obj', function ( object ) {
         object.traverse( function ( child ) {
             if ( child instanceof THREE.Mesh ) {
                 child.material.map = texture;
