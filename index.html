@@ -104,12 +104,8 @@
 	
 	let markerRoot = new THREE.Group;
 	scene.add(markerRoot);
-	let artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
-		type : 'pattern',
-		patternUrl : 'examples/custom_markers/data/ca.pat'
-	});
 
-    artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+    let artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
         type : 'pattern',
         patternUrl : 'examples/custom_markers/data/fl.pat'
     });
